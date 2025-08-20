@@ -108,7 +108,9 @@ if (isset($input['jsonrpc'])) {
                     'logging' => [],       // Supports logging operations
                     'roots' => [],         // Supports file system root operations
                     'prompts' => [],       // Supports prompt operations
-                    'resources' => [],     // Supports resource operations
+                    'resources' => [       // Supports resource operations
+                        'subscribe' => true
+                    ],
                     'tools' => [
                         [
                             'name' => 'get_current_time',
@@ -174,6 +176,45 @@ if (isset($input['jsonrpc'])) {
             'id' => $id
         ];
         
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+        exit();
+    } else if ($method === 'resources/list') {
+        // Handle resources/list method
+        // For now, we'll return an empty list since we don't have persistent resources
+        $response = [
+            'jsonrpc' => '2.0',
+            'result' => [
+                'resources' => []
+            ],
+            'id' => $id
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+        exit();
+    } else if ($method === 'resources/read') {
+        // Handle resources/read method
+        // This would normally retrieve content of a resource by URI
+        // For now, we'll return a method not implemented error
+        $response = [
+            'jsonrpc' => '2.0',
+            'error' => [
+                'code' => -32601,           // Standard code for method not found
+                'message' => 'Method not implemented'
+            ],
+            'id' => $id
+        ];
+        
+        http_response_code(400);
         if ($isSSE) {
             echo "data: " . json_encode($response) . "\n\n";
             flush();
