@@ -64,6 +64,57 @@ if (!$input && !empty($_GET)) {
     $input = $_GET;
 }
 
+// Check if this is a JSON-RPC request
+if (isset($input['jsonrpc'])) {
+    // Handle JSON-RPC requests
+    $method = isset($input['method']) ? $input['method'] : null;
+    $params = isset($input['params']) ? $input['params'] : [];
+    $id = isset($input['id']) ? $input['id'] : null;
+    
+    if ($method === 'initialize') {
+        // Handle initialize method
+        $response = [
+            'jsonrpc' => '2.0',
+            'result' => [
+                'protocolVersion' => '2024-11-05',
+                'capabilities' => [],
+                'serverInfo' => [
+                    'name' => 'DataWeaver MCP Server',
+                    'version' => '1.0.0'
+                ]
+            ],
+            'id' => $id
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+        exit();
+    } else {
+        // Handle unknown JSON-RPC methods
+        $response = [
+            'jsonrpc' => '2.0',
+            'error' => [
+                'code' => -32601,
+                'message' => 'Method not found'
+            ],
+            'id' => $id
+        ];
+        
+        http_response_code(400);
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+        exit();
+    }
+}
+
 // Validate input is properly formatted
 if ($input === null && json_last_error() !== JSON_ERROR_NONE) {
     http_response_code(400);
