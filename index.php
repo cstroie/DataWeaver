@@ -89,6 +89,55 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     echo json_encode([
         'result' => $plainText
     ]);
+} else if (isset($input['function']) && $input['function'] === 'get_metar') {
+    // Get METAR data for an ICAO airport
+    if (!isset($input['icao'])) {
+        http_response_code(400);
+        echo json_encode([
+            'error' => 'Missing ICAO parameter'
+        ]);
+        exit();
+    }
+    
+    $icao = strtoupper($input['icao']);
+    
+    // Validate ICAO code format (4 letters)
+    if (!preg_match('/^[A-Z]{4}$/', $icao)) {
+        http_response_code(400);
+        echo json_encode([
+            'error' => 'Invalid ICAO code. Must be 4 letters.'
+        ]);
+        exit();
+    }
+    
+    // Use aviationweather.gov API to get METAR data
+    $metarUrl = "https://aviationweather.gov/api/data/metar?ids=" . $icao;
+    $metarData = @file_get_contents($metarUrl);
+    
+    if ($metarData === false) {
+        http_response_code(500);
+        echo json_encode([
+            'error' => 'Failed to fetch METAR data'
+        ]);
+        exit();
+    }
+    
+    // Check if we got valid data
+    if (empty(trim($metarData))) {
+        http_response_code(404);
+        echo json_encode([
+            'error' => 'METAR data not available for this airport'
+        ]);
+        exit();
+    }
+    
+    // Format response
+    echo json_encode([
+        'result' => [
+            'icao' => $icao,
+            'metar' => trim($metarData)
+        ]
+    ]);
 } else if (isset($input['function']) && $input['function'] === 'get_weather') {
     // Get weather for a city
     if (!isset($input['city'])) {
@@ -175,7 +224,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Return error for unknown functions
     http_response_code(400);
     echo json_encode([
-        'error' => 'Unknown function. Available functions: get_current_time, get_webpage_text, get_weather'
+        'error' => 'Unknown function. Available functions: get_current_time, get_webpage_text, get_weather, get_metar'
     ]);
 }
 ?>
