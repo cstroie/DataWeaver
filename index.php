@@ -86,6 +86,18 @@ if (!is_array($input)) {
 
 // Process the request
 if (isset($input['function']) && $input['function'] === 'get_current_time') {
+    // Validate no extra parameters for this function
+    $allowedParams = ['function'];
+    $extraParams = array_diff(array_keys($input), $allowedParams);
+    if (!empty($extraParams)) {
+        http_response_code(400);
+        $response = [
+            'error' => 'Invalid parameters for get_current_time function: ' . implode(', ', $extraParams)
+        ];
+        sendResponse($response, $isSSE);
+        exit();
+    }
+    
     // Return current time
     $response = [
         'result' => date('Y-m-d H:i:s')
@@ -94,12 +106,25 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     sendResponse($response, $isSSE);
 } else if (isset($input['function']) && $input['function'] === 'get_webpage_text') {
     // Get webpage content and convert to plain text
+    // Validate required parameters
     if (!isset($input['url'])) {
         http_response_code(400);
         $response = [
             'error' => 'Missing url parameter'
         ];
         
+        sendResponse($response, $isSSE);
+        exit();
+    }
+    
+    // Validate no extra parameters except function and url
+    $allowedParams = ['function', 'url'];
+    $extraParams = array_diff(array_keys($input), $allowedParams);
+    if (!empty($extraParams)) {
+        http_response_code(400);
+        $response = [
+            'error' => 'Invalid parameters for get_webpage_text function: ' . implode(', ', $extraParams)
+        ];
         sendResponse($response, $isSSE);
         exit();
     }
@@ -152,12 +177,25 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     sendResponse($response, $isSSE);
 } else if (isset($input['function']) && $input['function'] === 'get_metar') {
     // Get METAR data for an ICAO airport
+    // Validate required parameters
     if (!isset($input['icao'])) {
         http_response_code(400);
         $response = [
             'error' => 'Missing ICAO parameter'
         ];
         
+        sendResponse($response, $isSSE);
+        exit();
+    }
+    
+    // Validate no extra parameters except function and icao
+    $allowedParams = ['function', 'icao'];
+    $extraParams = array_diff(array_keys($input), $allowedParams);
+    if (!empty($extraParams)) {
+        http_response_code(400);
+        $response = [
+            'error' => 'Invalid parameters for get_metar function: ' . implode(', ', $extraParams)
+        ];
         sendResponse($response, $isSSE);
         exit();
     }
@@ -219,12 +257,25 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     sendResponse($response, $isSSE);
 } else if (isset($input['function']) && $input['function'] === 'get_weather') {
     // Get weather for a city
+    // Validate required parameters
     if (!isset($input['city'])) {
         http_response_code(400);
         $response = [
             'error' => 'Missing city parameter'
         ];
         
+        sendResponse($response, $isSSE);
+        exit();
+    }
+    
+    // Validate no extra parameters except function and city
+    $allowedParams = ['function', 'city'];
+    $extraParams = array_diff(array_keys($input), $allowedParams);
+    if (!empty($extraParams)) {
+        http_response_code(400);
+        $response = [
+            'error' => 'Invalid parameters for get_weather function: ' . implode(', ', $extraParams)
+        ];
         sendResponse($response, $isSSE);
         exit();
     }
