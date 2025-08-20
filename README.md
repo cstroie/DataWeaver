@@ -111,6 +111,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"function":"get_metar","ic
 - `get_current_time`: Returns the current server time in YYYY-MM-DD HH:MM:SS format
 - `get_webpage_text`: Fetches the content of a webpage and returns it as plain text
 - `get_weather`: Returns current weather information for a specified city
+- `get_metar`: Returns METAR information for a specified ICAO airport code
 
 ## License
 
