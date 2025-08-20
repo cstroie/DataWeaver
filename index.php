@@ -96,6 +96,26 @@ function createMCPError($code, $message, $data = null, $id = null) {
     return $error;
 }
 
+// Helper function to send progress notifications
+// Sends progress updates during long operations
+function sendProgress($progressToken, $progress, $isSSE) {
+    $notification = [
+        'jsonrpc' => '2.0',
+        'method' => 'notifications/progress',
+        'params' => [
+            'progressToken' => $progressToken,
+            'progress' => $progress
+        ]
+    ];
+    
+    if ($isSSE) {
+        echo "data: " . json_encode($notification) . "\n\n";
+        flush();
+    } else {
+        echo json_encode($notification);
+    }
+}
+
 // Get the request data
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -291,6 +311,20 @@ if (isset($input['jsonrpc'])) {
             echo json_encode($response);
         }
         exit();
+    } else if ($method === 'notifications/progress') {
+        // Handle progress notifications
+        // This is for receiving progress updates from clients
+        // For now, we'll return a method not implemented error
+        $response = createMCPError(-32601, 'Method not implemented', null, $id);
+        
+        http_response_code(400);
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+        exit();
     } else {
         // Handle unknown JSON-RPC methods
         // Return standard JSON-RPC error response
@@ -463,6 +497,14 @@ if ($function === 'get_current_time') {
         exit();
     }
     
+    // Generate a progress token for this operation
+    $progressToken = uniqid('webpage_', true);
+    
+    // Send initial progress notification
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 0, $isSSE);
+    }
+    
     // Create context with user agent to identify our requests
     // Set timeout to prevent hanging on slow websites
     $context = stream_context_create([
@@ -472,9 +514,19 @@ if ($function === 'get_current_time') {
         ]
     ]);
     
+    // Send progress notification before fetching
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 25, $isSSE);
+    }
+    
     // Fetch webpage content using file_get_contents with context
     // The @ suppresses warnings which we handle with the false check
     $content = @file_get_contents($url, false, $context);
+    
+    // Send progress notification after fetching
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 75, $isSSE);
+    }
     
     if ($content === false) {
         if (isset($input['jsonrpc'])) {
@@ -505,6 +557,11 @@ if ($function === 'get_current_time') {
     // Then trim leading/trailing whitespace
     $plainText = preg_replace('/\s+/', ' ', $plainText);
     $plainText = trim($plainText);
+    
+    // Send final progress notification
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 100, $isSSE);
+    }
     
     $response = [
         'result' => $plainText
@@ -586,6 +643,14 @@ if ($function === 'get_current_time') {
         exit();
     }
     
+    // Generate a progress token for this operation
+    $progressToken = uniqid('metar_', true);
+    
+    // Send initial progress notification
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 0, $isSSE);
+    }
+    
     // Create context with user agent
     $context = stream_context_create([
         'http' => [
@@ -594,9 +659,19 @@ if ($function === 'get_current_time') {
         ]
     ]);
     
+    // Send progress notification before fetching
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 50, $isSSE);
+    }
+    
     // Use aviationweather.gov API to get METAR data
     $metarUrl = "https://aviationweather.gov/api/data/metar?ids=" . $icao;
     $metarData = @file_get_contents($metarUrl, false, $context);
+    
+    // Send progress notification after fetching
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 90, $isSSE);
+    }
     
     if ($metarData === false) {
         if (isset($input['jsonrpc'])) {
@@ -641,6 +716,11 @@ if ($function === 'get_current_time') {
             sendResponse($response, $isSSE);
         }
         exit();
+    }
+    
+    // Send final progress notification
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 100, $isSSE);
     }
     
     // Format response
@@ -728,6 +808,14 @@ if ($function === 'get_current_time') {
         exit();
     }
     
+    // Generate a progress token for this operation
+    $progressToken = uniqid('weather_', true);
+    
+    // Send initial progress notification
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 0, $isSSE);
+    }
+    
     // Create context with user agent
     $context = stream_context_create([
         'http' => [
@@ -736,9 +824,19 @@ if ($function === 'get_current_time') {
         ]
     ]);
     
+    // Send progress notification before geocoding
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 20, $isSSE);
+    }
+    
     // First, get coordinates using Geocoding API
     $geocodeUrl = "http://api.openweathermap.org/geo/1.0/direct?q=" . urlencode($city) . "&limit=1&appid=" . $apiKey;
     $geocodeData = @file_get_contents($geocodeUrl, false, $context);
+    
+    // Send progress notification after geocoding
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 50, $isSSE);
+    }
     
     if ($geocodeData === false) {
         if (isset($input['jsonrpc'])) {
@@ -792,9 +890,19 @@ if ($function === 'get_current_time') {
     $resolvedCity = $locations[0]['name'];
     $country = $locations[0]['country'];
     
+    // Send progress notification before weather fetch
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 70, $isSSE);
+    }
+    
     // Then, get weather data using coordinates with API version 3
     $weatherUrl = "http://api.openweathermap.org/data/3.0/onecall?lat=" . $lat . "&lon=" . $lon . "&appid=" . $apiKey . "&units=metric&exclude=minutely,hourly,daily,alerts";
     $weatherData = @file_get_contents($weatherUrl, false, $context);
+    
+    // Send progress notification after weather fetch
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 90, $isSSE);
+    }
     
     if ($weatherData === false) {
         if (isset($input['jsonrpc'])) {
@@ -841,6 +949,11 @@ if ($function === 'get_current_time') {
             sendResponse($response, $isSSE);
         }
         exit();
+    }
+    
+    // Send final progress notification
+    if (isset($input['jsonrpc'])) {
+        sendProgress($progressToken, 100, $isSSE);
     }
     
     // Format response
