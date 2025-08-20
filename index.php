@@ -84,8 +84,11 @@ if (!is_array($input)) {
     exit();
 }
 
+// Extract function name
+$function = isset($input['function']) ? $input['function'] : null;
+
 // Process the request
-if (isset($input['function']) && $input['function'] === 'get_current_time') {
+if ($function === 'get_current_time') {
     // Validate no extra parameters for this function
     $allowedParams = ['function'];
     $extraParams = array_diff(array_keys($input), $allowedParams);
@@ -104,7 +107,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     ];
     
     sendResponse($response, $isSSE);
-} else if (isset($input['function']) && $input['function'] === 'get_webpage_text') {
+} else if ($function === 'get_webpage_text') {
     // Get webpage content and convert to plain text
     // Validate required parameters
     if (!isset($input['url'])) {
@@ -175,7 +178,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     ];
     
     sendResponse($response, $isSSE);
-} else if (isset($input['function']) && $input['function'] === 'get_metar') {
+} else if ($function === 'get_metar') {
     // Get METAR data for an ICAO airport
     // Validate required parameters
     if (!isset($input['icao'])) {
@@ -255,7 +258,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     ];
     
     sendResponse($response, $isSSE);
-} else if (isset($input['function']) && $input['function'] === 'get_weather') {
+} else if ($function === 'get_weather') {
     // Get weather for a city
     // Validate required parameters
     if (!isset($input['city'])) {
