@@ -147,7 +147,9 @@ if (isset($input['jsonrpc'])) {
                         'createMessage' => true
                     ],
                     'logging' => [],       // Supports logging operations
-                    'roots' => [],         // Supports file system root operations
+                    'roots' => [           // Supports file system root operations
+                        'list' => true
+                    ],
                     'prompts' => [         // Supports prompt operations
                         'list' => true
                     ],
@@ -318,6 +320,29 @@ if (isset($input['jsonrpc'])) {
         $response = createMCPError(-32601, 'Method not implemented', null, $id);
         
         http_response_code(400);
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+        exit();
+    } else if ($method === 'roots/list') {
+        // Handle roots/list method
+        // List available root directories
+        $response = [
+            'jsonrpc' => '2.0',
+            'result' => [
+                'roots' => [
+                    [
+                        'name' => 'server',
+                        'uri' => 'file:///'
+                    ]
+                ]
+            ],
+            'id' => $id
+        ];
+        
         if ($isSSE) {
             echo "data: " . json_encode($response) . "\n\n";
             flush();
