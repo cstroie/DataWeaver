@@ -2,6 +2,11 @@
 
 A minimal Model Communication Protocol server implemented in PHP with functions to return the current time, fetch webpage content, and get weather information.
 
+## Setup
+
+1. Rename `config.php.template` to `config.php`
+2. Edit `config.php` and add your OpenWeatherMap API key
+
 ## Usage
 
 Send a POST request to the server with JSON data:
@@ -85,8 +90,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"function":"get_weather","
 
 ## Configuration
 
-To use the weather function, you need to set the OpenWeatherMap API key as an environment variable:
+To use the weather function, you need to:
 
-```bash
-export OPENWEATHER_API_KEY=your_api_key_here
-```
+1. Rename `config.php.template` to `config.php`
+2. Edit `config.php` and replace `your_openweather_api_key_here` with your actual API key from [OpenWeatherMap](https://openweathermap.org/api)

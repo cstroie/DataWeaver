@@ -2,6 +2,11 @@
 // AI MCP (Model Communication Protocol) Server
 // This script handles requests and routes them to appropriate functions
 
+// Load configuration
+if (file_exists('config.php')) {
+    require_once 'config.php';
+}
+
 header('Content-Type: application/json');
 
 // Handle CORS
@@ -84,7 +89,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     $city = $input['city'];
     
     // OpenWeatherMap API configuration
-    $apiKey = getenv('OPENWEATHER_API_KEY'); // Get API key from environment variable
+    $apiKey = defined('OPENWEATHER_API_KEY') ? OPENWEATHER_API_KEY : getenv('OPENWEATHER_API_KEY');
     if (!$apiKey) {
         http_response_code(500);
         echo json_encode([

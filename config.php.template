@@ -1,0 +1,9 @@
+<?php
+// Configuration file for AI MCP Server
+// Rename this file to config.php and fill in your credentials
+
+// OpenWeatherMap API Key
+// Get your free API key at https://openweathermap.org/api
+define('OPENWEATHER_API_KEY', 'your_openweather_api_key_here');
+
+?>
