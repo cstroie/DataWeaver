@@ -71,7 +71,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Create context with user agent
     $context = stream_context_create([
         'http' => [
-            'user_agent' => 'DataWeaver/1.0 (https://github.com/DataWeaver)',
+            'user_agent' => 'DataWeaver/1.0 (https://github.com/cstroie/DataWeaver)',
             'timeout' => 30
         ]
     ]);
@@ -121,7 +121,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Create context with user agent
     $context = stream_context_create([
         'http' => [
-            'user_agent' => 'DataWeaver/1.0 (https://github.com/DataWeaver)',
+            'user_agent' => 'DataWeaver/1.0 (https://github.com/cstroie/DataWeaver)',
             'timeout' => 30
         ]
     ]);
@@ -179,7 +179,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Create context with user agent
     $context = stream_context_create([
         'http' => [
-            'user_agent' => 'DataWeaver/1.0 (https://github.com/DataWeaver)',
+            'user_agent' => 'DataWeaver/1.0 (https://github.com/cstroie/DataWeaver)',
             'timeout' => 30
         ]
     ]);
