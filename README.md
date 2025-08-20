@@ -1,6 +1,6 @@
 # DataWeaver
 
-A minimal Model Communication Protocol server implemented in PHP with functions to return the current time, fetch webpage content, and get weather information.
+A minimal Model Communication Protocol server implemented in PHP with functions to return the current time, fetch webpage content, get weather information, and support JSON-RPC protocol.
 
 ## Setup
 
@@ -8,6 +8,8 @@ A minimal Model Communication Protocol server implemented in PHP with functions 
 2. Edit `config.php` and add your OpenWeatherMap API key
 
 ## Usage
+
+### Standard Function Calls
 
 Send a POST request to the server with JSON data:
 
@@ -86,32 +88,47 @@ The server will respond with:
 
 ## Example using curl
 
-### Get Current Time
+### Standard Function Calls
+
+#### Get Current Time
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{"function":"get_current_time"}' http://localhost/
 ```
 
-### Get Webpage Text Content
+#### Get Webpage Text Content
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{"function":"get_webpage_text","url":"https://example.com"}' http://localhost/
 ```
 
-### Get Weather Information
+#### Get Weather Information
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{"function":"get_weather","city":"London"}' http://localhost/
 ```
 
-### Get METAR Information
+#### Get METAR Information
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{"function":"get_metar","icao":"EGLL"}' http://localhost/
 ```
 
+### JSON-RPC Calls
+
+#### Initialize Connection
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"chatbox-mcp-client","version":"1.0.0"}},"jsonrpc":"2.0","id":0}' http://localhost/
+```
+
 ## Functions
+
+### Standard Functions
 
 - `get_current_time`: Returns the current server time in YYYY-MM-DD HH:MM:SS format
 - `get_webpage_text`: Fetches the content of a webpage and returns it as plain text
 - `get_weather`: Returns current weather information for a specified city
 - `get_metar`: Returns METAR information for a specified ICAO airport code
+
+### JSON-RPC Methods
+
+- `initialize`: Establishes a connection with the MCP server and returns server capabilities
 
 ## License
 
