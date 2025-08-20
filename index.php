@@ -61,7 +61,8 @@ function logRequest($input) {
         json_encode($input)
     );
     
-    file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+    // Suppress errors in case the log directory isn't writable
+    @file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
 }
 
 // Helper function to send responses
@@ -98,7 +99,14 @@ if (isset($input['jsonrpc'])) {
             'jsonrpc' => '2.0',
             'result' => [
                 'protocolVersion' => '2024-11-05',
-                'capabilities' => [],
+                'capabilities' => [
+                    'sampling' => [],
+                    'logging' => [],
+                    'roots' => [],
+                    'prompts' => [],
+                    'resources' => [],
+                    'tools' => []
+                ],
                 'serverInfo' => [
                     'name' => 'DataWeaver MCP Server',
                     'version' => '1.0.0'
@@ -137,7 +145,7 @@ if (isset($input['jsonrpc'])) {
 }
 
 // Validate input is properly formatted
-if ($input === null && json_last_error() !== JSON_ERROR_NONE) {
+if ($input === null && json_last_error() !== JSON_ERROR_NONE && !isset($input['jsonrpc'])) {
     http_response_code(400);
     $response = [
         'error' => 'Invalid JSON format in request'
