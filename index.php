@@ -46,6 +46,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+// Helper function to log requests
+function logRequest($input) {
+    $logFile = '/tmp/dataweaver_requests.log';
+    $timestamp = date('Y-m-d H:i:s');
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'unknown';
+    
+    $logEntry = sprintf(
+        "[%s] %s %s: %s\n",
+        $timestamp,
+        $ip,
+        $method,
+        json_encode($input)
+    );
+    
+    file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+}
+
 // Helper function to send responses
 function sendResponse($response, $isSSE) {
     if ($isSSE) {
@@ -63,6 +81,9 @@ $input = json_decode(file_get_contents('php://input'), true);
 if (!$input && !empty($_GET)) {
     $input = $_GET;
 }
+
+// Log the request
+logRequest($input);
 
 // Check if this is a JSON-RPC request
 if (isset($input['jsonrpc'])) {
