@@ -64,6 +64,26 @@ if (!$input && !empty($_GET)) {
     $input = $_GET;
 }
 
+// Validate input is properly formatted
+if ($input === null && json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    $response = [
+        'error' => 'Invalid JSON format in request'
+    ];
+    sendResponse($response, $isSSE);
+    exit();
+}
+
+// Ensure input is an array
+if (!is_array($input)) {
+    http_response_code(400);
+    $response = [
+        'error' => 'Request body must be a JSON object'
+    ];
+    sendResponse($response, $isSSE);
+    exit();
+}
+
 // Process the request
 if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Return current time
