@@ -20,12 +20,25 @@ if (file_exists('config.php')) {
     require_once 'config.php';
 }
 
-header('Content-Type: application/json');
+// Check if this is an SSE request
+$isSSE = isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'text/event-stream') !== false;
 
-// Handle CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+if ($isSSE) {
+    // Set SSE headers
+    header('Content-Type: text/event-stream');
+    header('Cache-Control: no-cache');
+    header('Connection: keep-alive');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Accept');
+} else {
+    // Regular JSON response
+    header('Content-Type: application/json');
+    // Handle CORS
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+}
 
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -44,16 +57,30 @@ if (!$input && !empty($_GET)) {
 // Process the request
 if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Return current time
-    echo json_encode([
+    $response = [
         'result' => date('Y-m-d H:i:s')
-    ]);
+    ];
+    
+    if ($isSSE) {
+        echo "data: " . json_encode($response) . "\n\n";
+        flush();
+    } else {
+        echo json_encode($response);
+    }
 } else if (isset($input['function']) && $input['function'] === 'get_webpage_text') {
     // Get webpage content and convert to plain text
     if (!isset($input['url'])) {
         http_response_code(400);
-        echo json_encode([
+        $response = [
             'error' => 'Missing url parameter'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -62,9 +89,16 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Validate URL
     if (!filter_var($url, FILTER_VALIDATE_URL)) {
         http_response_code(400);
-        echo json_encode([
+        $response = [
             'error' => 'Invalid URL provided'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -81,9 +115,16 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     
     if ($content === false) {
         http_response_code(500);
-        echo json_encode([
+        $response = [
             'error' => 'Failed to fetch webpage content'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -94,16 +135,30 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     $plainText = preg_replace('/\s+/', ' ', $plainText);
     $plainText = trim($plainText);
     
-    echo json_encode([
+    $response = [
         'result' => $plainText
-    ]);
+    ];
+    
+    if ($isSSE) {
+        echo "data: " . json_encode($response) . "\n\n";
+        flush();
+    } else {
+        echo json_encode($response);
+    }
 } else if (isset($input['function']) && $input['function'] === 'get_metar') {
     // Get METAR data for an ICAO airport
     if (!isset($input['icao'])) {
         http_response_code(400);
-        echo json_encode([
+        $response = [
             'error' => 'Missing ICAO parameter'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -112,9 +167,16 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Validate ICAO code format (4 letters)
     if (!preg_match('/^[A-Z]{4}$/', $icao)) {
         http_response_code(400);
-        echo json_encode([
+        $response = [
             'error' => 'Invalid ICAO code. Must be 4 letters.'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -132,35 +194,63 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     
     if ($metarData === false) {
         http_response_code(500);
-        echo json_encode([
+        $response = [
             'error' => 'Failed to fetch METAR data'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
     // Check if we got valid data
     if (empty(trim($metarData))) {
         http_response_code(404);
-        echo json_encode([
+        $response = [
             'error' => 'METAR data not available for this airport'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
     // Format response
-    echo json_encode([
+    $response = [
         'result' => [
             'icao' => $icao,
             'metar' => trim($metarData)
         ]
-    ]);
+    ];
+    
+    if ($isSSE) {
+        echo "data: " . json_encode($response) . "\n\n";
+        flush();
+    } else {
+        echo json_encode($response);
+    }
 } else if (isset($input['function']) && $input['function'] === 'get_weather') {
     // Get weather for a city
     if (!isset($input['city'])) {
         http_response_code(400);
-        echo json_encode([
+        $response = [
             'error' => 'Missing city parameter'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -170,9 +260,16 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     $apiKey = defined('OPENWEATHER_API_KEY') ? OPENWEATHER_API_KEY : getenv('OPENWEATHER_API_KEY');
     if (!$apiKey) {
         http_response_code(500);
-        echo json_encode([
+        $response = [
             'error' => 'Weather API key not configured'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -190,10 +287,17 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     
     if ($geocodeData === false) {
         http_response_code(500);
-        echo json_encode([
+        $response = [
             'error' => 'Failed to fetch geocoding data',
             'response' => $geocodeData
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -201,9 +305,16 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     
     if (empty($locations)) {
         http_response_code(404);
-        echo json_encode([
+        $response = [
             'error' => 'City not found'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -218,10 +329,17 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     
     if ($weatherData === false) {
         http_response_code(500);
-        echo json_encode([
+        $response = [
             'error' => 'Failed to fetch weather data',
             'response' => $weatherData
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
@@ -229,14 +347,21 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     
     if (!isset($weather['current'])) {
         http_response_code(500);
-        echo json_encode([
+        $response = [
             'error' => 'Invalid weather data received'
-        ]);
+        ];
+        
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
         exit();
     }
     
     // Format response
-    echo json_encode([
+    $response = [
         'result' => [
             'city' => $resolvedCity,
             'country' => $country,
@@ -245,12 +370,26 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'humidity' => $weather['current']['humidity'],
             'pressure' => $weather['current']['pressure']
         ]
-    ]);
+    ];
+    
+    if ($isSSE) {
+        echo "data: " . json_encode($response) . "\n\n";
+        flush();
+    } else {
+        echo json_encode($response);
+    }
 } else {
     // Return error for unknown functions
     http_response_code(400);
-    echo json_encode([
+    $response = [
         'error' => 'Unknown function. Available functions: get_current_time, get_webpage_text, get_weather, get_metar'
-    ]);
+    ];
+    
+    if ($isSSE) {
+        echo "data: " . json_encode($response) . "\n\n";
+        flush();
+    } else {
+        echo json_encode($response);
+    }
 }
 ?>
