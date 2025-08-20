@@ -111,11 +111,36 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         exit();
     }
     
-    // Build API URL
-    $apiUrl = "http://api.openweathermap.org/data/3.0/weather?q=" . urlencode($city) . "&appid=" . $apiKey . "&units=metric";
+    // First, get coordinates using Geocoding API
+    $geocodeUrl = "http://api.openweathermap.org/geo/1.0/direct?q=" . urlencode($city) . "&limit=1&appid=" . $apiKey;
+    $geocodeData = @file_get_contents($geocodeUrl);
     
-    // Fetch weather data
-    $weatherData = @file_get_contents($apiUrl);
+    if ($geocodeData === false) {
+        http_response_code(500);
+        echo json_encode([
+            'error' => 'Failed to fetch geocoding data'
+        ]);
+        exit();
+    }
+    
+    $locations = json_decode($geocodeData, true);
+    
+    if (empty($locations)) {
+        http_response_code(404);
+        echo json_encode([
+            'error' => 'City not found'
+        ]);
+        exit();
+    }
+    
+    $lat = $locations[0]['lat'];
+    $lon = $locations[0]['lon'];
+    $resolvedCity = $locations[0]['name'];
+    $country = $locations[0]['country'];
+    
+    // Then, get weather data using coordinates with API version 3
+    $weatherUrl = "http://api.openweathermap.org/data/3.0/onecall?lat=" . $lat . "&lon=" . $lon . "&appid=" . $apiKey . "&units=metric&exclude=minutely,hourly,daily,alerts";
+    $weatherData = @file_get_contents($weatherUrl);
     
     if ($weatherData === false) {
         http_response_code(500);
@@ -127,10 +152,10 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     
     $weather = json_decode($weatherData, true);
     
-    if ($weather['cod'] !== 200) {
-        http_response_code($weather['cod']);
+    if (!isset($weather['current'])) {
+        http_response_code(500);
         echo json_encode([
-            'error' => $weather['message']
+            'error' => 'Invalid weather data received'
         ]);
         exit();
     }
@@ -138,12 +163,12 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     // Format response
     echo json_encode([
         'result' => [
-            'city' => $weather['name'],
-            'country' => $weather['sys']['country'],
-            'temperature' => $weather['main']['temp'],
-            'description' => $weather['weather'][0]['description'],
-            'humidity' => $weather['main']['humidity'],
-            'pressure' => $weather['main']['pressure']
+            'city' => $resolvedCity,
+            'country' => $country,
+            'temperature' => $weather['current']['temp'],
+            'description' => $weather['current']['weather'][0]['description'],
+            'humidity' => $weather['current']['humidity'],
+            'pressure' => $weather['current']['pressure']
         ]
     ]);
 } else {
