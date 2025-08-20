@@ -77,6 +77,25 @@ function sendResponse($response, $isSSE) {
     }
 }
 
+// Helper function to create MCP error responses
+// Creates structured error responses according to JSON-RPC 2.0 specification
+function createMCPError($code, $message, $data = null, $id = null) {
+    $error = [
+        'jsonrpc' => '2.0',
+        'error' => [
+            'code' => $code,
+            'message' => $message
+        ],
+        'id' => $id
+    ];
+    
+    if ($data !== null) {
+        $error['error']['data'] = $data;
+    }
+    
+    return $error;
+}
+
 // Get the request data
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -287,7 +306,19 @@ if (isset($input['jsonrpc'])) {
 }
 
 // Validate input is properly formatted
-if ($input === null && json_last_error() !== JSON_ERROR_NONE && !isset($input['jsonrpc'])) {
+if (isset($input['jsonrpc'])) {
+    // For JSON-RPC requests, use structured error response
+    $response = createMCPError(-32700, 'Invalid JSON format in request', null, isset($input['id']) ? $input['id'] : null);
+    http_response_code(400);
+    if ($isSSE) {
+        echo "data: " . json_encode($response) . "\n\n";
+        flush();
+    } else {
+        echo json_encode($response);
+    }
+    exit();
+} else if ($input === null && json_last_error() !== JSON_ERROR_NONE) {
+    // For regular requests, use simple error response
     http_response_code(400);
     $response = [
         'error' => 'Invalid JSON format in request'
@@ -298,11 +329,24 @@ if ($input === null && json_last_error() !== JSON_ERROR_NONE && !isset($input['j
 
 // Ensure input is an array
 if (!is_array($input)) {
-    http_response_code(400);
-    $response = [
-        'error' => 'Request body must be a JSON object'
-    ];
-    sendResponse($response, $isSSE);
+    if (isset($input['jsonrpc'])) {
+        // For JSON-RPC requests, use structured error response
+        $response = createMCPError(-32602, 'Request body must be a JSON object', null, isset($input['id']) ? $input['id'] : null);
+        http_response_code(400);
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+    } else {
+        // For regular requests, use simple error response
+        http_response_code(400);
+        $response = [
+            'error' => 'Request body must be a JSON object'
+        ];
+        sendResponse($response, $isSSE);
+    }
     exit();
 }
 
@@ -315,11 +359,24 @@ if ($function === 'get_current_time') {
     $allowedParams = ['function'];
     $extraParams = array_diff(array_keys($input), $allowedParams);
     if (!empty($extraParams)) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Invalid parameters for get_current_time function: ' . implode(', ', $extraParams)
-        ];
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Invalid parameters for get_current_time function: ' . implode(', ', $extraParams), null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Invalid parameters for get_current_time function: ' . implode(', ', $extraParams)
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -333,12 +390,24 @@ if ($function === 'get_current_time') {
     // Get webpage content and convert to plain text
     // Validate required parameters
     if (!isset($input['url'])) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Missing url parameter'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Missing url parameter', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Missing url parameter'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -346,11 +415,24 @@ if ($function === 'get_current_time') {
     $allowedParams = ['function', 'url'];
     $extraParams = array_diff(array_keys($input), $allowedParams);
     if (!empty($extraParams)) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Invalid parameters for get_webpage_text function: ' . implode(', ', $extraParams)
-        ];
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Invalid parameters for get_webpage_text function: ' . implode(', ', $extraParams), null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Invalid parameters for get_webpage_text function: ' . implode(', ', $extraParams)
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -358,12 +440,24 @@ if ($function === 'get_current_time') {
     
     // Validate URL format
     if (!filter_var($url, FILTER_VALIDATE_URL)) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Invalid URL provided'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Invalid URL provided', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Invalid URL provided'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -381,12 +475,24 @@ if ($function === 'get_current_time') {
     $content = @file_get_contents($url, false, $context);
     
     if ($content === false) {
-        http_response_code(500);
-        $response = [
-            'error' => 'Failed to fetch webpage content'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32000, 'Failed to fetch webpage content', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(500);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(500);
+            $response = [
+                'error' => 'Failed to fetch webpage content'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -407,12 +513,24 @@ if ($function === 'get_current_time') {
     // Get METAR data for an ICAO airport
     // Validate required parameters
     if (!isset($input['icao'])) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Missing ICAO parameter'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Missing ICAO parameter', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Missing ICAO parameter'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -420,11 +538,24 @@ if ($function === 'get_current_time') {
     $allowedParams = ['function', 'icao'];
     $extraParams = array_diff(array_keys($input), $allowedParams);
     if (!empty($extraParams)) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Invalid parameters for get_metar function: ' . implode(', ', $extraParams)
-        ];
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Invalid parameters for get_metar function: ' . implode(', ', $extraParams), null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Invalid parameters for get_metar function: ' . implode(', ', $extraParams)
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -432,12 +563,24 @@ if ($function === 'get_current_time') {
     
     // Validate ICAO code format (4 letters)
     if (!preg_match('/^[A-Z]{4}$/', $icao)) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Invalid ICAO code. Must be 4 letters.'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Invalid ICAO code. Must be 4 letters.', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Invalid ICAO code. Must be 4 letters.'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -454,23 +597,47 @@ if ($function === 'get_current_time') {
     $metarData = @file_get_contents($metarUrl, false, $context);
     
     if ($metarData === false) {
-        http_response_code(500);
-        $response = [
-            'error' => 'Failed to fetch METAR data'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32000, 'Failed to fetch METAR data', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(500);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(500);
+            $response = [
+                'error' => 'Failed to fetch METAR data'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
     // Check if we got valid data
     if (empty(trim($metarData))) {
-        http_response_code(404);
-        $response = [
-            'error' => 'METAR data not available for this airport'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32000, 'METAR data not available for this airport', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(404);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(404);
+            $response = [
+                'error' => 'METAR data not available for this airport'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -487,12 +654,24 @@ if ($function === 'get_current_time') {
     // Get weather for a city
     // Validate required parameters
     if (!isset($input['city'])) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Missing city parameter'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Missing city parameter', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Missing city parameter'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -500,11 +679,24 @@ if ($function === 'get_current_time') {
     $allowedParams = ['function', 'city'];
     $extraParams = array_diff(array_keys($input), $allowedParams);
     if (!empty($extraParams)) {
-        http_response_code(400);
-        $response = [
-            'error' => 'Invalid parameters for get_weather function: ' . implode(', ', $extraParams)
-        ];
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32602, 'Invalid parameters for get_weather function: ' . implode(', ', $extraParams), null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(400);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(400);
+            $response = [
+                'error' => 'Invalid parameters for get_weather function: ' . implode(', ', $extraParams)
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -513,12 +705,24 @@ if ($function === 'get_current_time') {
     // OpenWeatherMap API configuration
     $apiKey = defined('OPENWEATHER_API_KEY') ? OPENWEATHER_API_KEY : getenv('OPENWEATHER_API_KEY');
     if (!$apiKey) {
-        http_response_code(500);
-        $response = [
-            'error' => 'Weather API key not configured'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32000, 'Weather API key not configured', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(500);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(500);
+            $response = [
+                'error' => 'Weather API key not configured'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -535,25 +739,49 @@ if ($function === 'get_current_time') {
     $geocodeData = @file_get_contents($geocodeUrl, false, $context);
     
     if ($geocodeData === false) {
-        http_response_code(500);
-        $response = [
-            'error' => 'Failed to fetch geocoding data',
-            'response' => $geocodeData
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32000, 'Failed to fetch geocoding data', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(500);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(500);
+            $response = [
+                'error' => 'Failed to fetch geocoding data',
+                'response' => $geocodeData
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
     $locations = json_decode($geocodeData, true);
     
     if (empty($locations)) {
-        http_response_code(404);
-        $response = [
-            'error' => 'City not found'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32000, 'City not found', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(404);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(404);
+            $response = [
+                'error' => 'City not found'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -567,25 +795,49 @@ if ($function === 'get_current_time') {
     $weatherData = @file_get_contents($weatherUrl, false, $context);
     
     if ($weatherData === false) {
-        http_response_code(500);
-        $response = [
-            'error' => 'Failed to fetch weather data',
-            'response' => $weatherData
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32000, 'Failed to fetch weather data', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(500);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(500);
+            $response = [
+                'error' => 'Failed to fetch weather data',
+                'response' => $weatherData
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
     $weather = json_decode($weatherData, true);
     
     if (!isset($weather['current'])) {
-        http_response_code(500);
-        $response = [
-            'error' => 'Invalid weather data received'
-        ];
-        
-        sendResponse($response, $isSSE);
+        if (isset($input['jsonrpc'])) {
+            // For JSON-RPC requests, use structured error response
+            $response = createMCPError(-32000, 'Invalid weather data received', null, isset($input['id']) ? $input['id'] : null);
+            http_response_code(500);
+            if ($isSSE) {
+                echo "data: " . json_encode($response) . "\n\n";
+                flush();
+            } else {
+                echo json_encode($response);
+            }
+        } else {
+            // For regular requests, use simple error response
+            http_response_code(500);
+            $response = [
+                'error' => 'Invalid weather data received'
+            ];
+            sendResponse($response, $isSSE);
+        }
         exit();
     }
     
@@ -604,11 +856,23 @@ if ($function === 'get_current_time') {
     sendResponse($response, $isSSE);
 } else {
     // Return error for unknown functions
-    http_response_code(400);
-    $response = [
-        'error' => 'Unknown function. Available functions: get_current_time, get_webpage_text, get_weather, get_metar'
-    ];
-    
-    sendResponse($response, $isSSE);
+    if (isset($input['jsonrpc'])) {
+        // For JSON-RPC requests, use structured error response
+        $response = createMCPError(-32601, 'Unknown function. Available functions: get_current_time, get_webpage_text, get_weather, get_metar', null, isset($input['id']) ? $input['id'] : null);
+        http_response_code(400);
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+    } else {
+        // For regular requests, use simple error response
+        http_response_code(400);
+        $response = [
+            'error' => 'Unknown function. Available functions: get_current_time, get_webpage_text, get_weather, get_metar'
+        ];
+        sendResponse($response, $isSSE);
+    }
 }
 ?>
