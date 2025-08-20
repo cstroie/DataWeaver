@@ -1,4 +1,4 @@
-# PHP AI MCP Server
+# DataWeaver
 
 A minimal Model Communication Protocol server implemented in PHP with functions to return the current time, fetch webpage content, and get weather information.
 
@@ -87,6 +87,10 @@ curl -X POST -H "Content-Type: application/json" -d '{"function":"get_weather","
 - `get_current_time`: Returns the current server time in YYYY-MM-DD HH:MM:SS format
 - `get_webpage_text`: Fetches the content of a webpage and returns it as plain text
 - `get_weather`: Returns current weather information for a specified city
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 
 ## Configuration
 
