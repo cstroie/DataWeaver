@@ -109,7 +109,62 @@ if (isset($input['jsonrpc'])) {
                     'roots' => [],         // Supports file system root operations
                     'prompts' => [],       // Supports prompt operations
                     'resources' => [],     // Supports resource operations
-                    'tools' => []          // Supports tool operations
+                    'tools' => [
+                        [
+                            'name' => 'get_current_time',
+                            'description' => 'Returns the current server time in YYYY-MM-DD HH:MM:SS format',
+                            'inputSchema' => [
+                                'type' => 'object',
+                                'properties' => [],
+                                'additionalProperties' => false
+                            ]
+                        ],
+                        [
+                            'name' => 'get_webpage_text',
+                            'description' => 'Fetches the content of a webpage and returns it as plain text',
+                            'inputSchema' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'url' => [
+                                        'type' => 'string',
+                                        'description' => 'The URL of the webpage to fetch'
+                                    ]
+                                ],
+                                'required' => ['url'],
+                                'additionalProperties' => false
+                            ]
+                        ],
+                        [
+                            'name' => 'get_weather',
+                            'description' => 'Returns current weather information for a specified city',
+                            'inputSchema' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'city' => [
+                                        'type' => 'string',
+                                        'description' => 'The name of the city to get weather for'
+                                    ]
+                                ],
+                                'required' => ['city'],
+                                'additionalProperties' => false
+                            ]
+                        ],
+                        [
+                            'name' => 'get_metar',
+                            'description' => 'Returns METAR information for a specified ICAO airport code',
+                            'inputSchema' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'icao' => [
+                                        'type' => 'string',
+                                        'description' => 'The ICAO code of the airport (4 letters)'
+                                    ]
+                                ],
+                                'required' => ['icao'],
+                                'additionalProperties' => false
+                            ]
+                        ]
+                    ]
                 ],
                 'serverInfo' => [
                     'name' => 'DataWeaver MCP Server',
