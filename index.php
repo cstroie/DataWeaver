@@ -123,7 +123,9 @@ if (isset($input['jsonrpc'])) {
             'result' => [
                 'protocolVersion' => '2024-11-05',
                 'capabilities' => [
-                    'sampling' => [],      // Supports sampling operations
+                    'sampling' => [        // Supports sampling operations
+                        'createMessage' => true
+                    ],
                     'logging' => [],       // Supports logging operations
                     'roots' => [],         // Supports file system root operations
                     'prompts' => [         // Supports prompt operations
@@ -264,6 +266,20 @@ if (isset($input['jsonrpc'])) {
     } else if ($method === 'prompts/get') {
         // Handle prompts/get method
         // This would normally retrieve a prompt by name
+        // For now, we'll return a method not implemented error
+        $response = createMCPError(-32601, 'Method not implemented', null, $id);
+        
+        http_response_code(400);
+        if ($isSSE) {
+            echo "data: " . json_encode($response) . "\n\n";
+            flush();
+        } else {
+            echo json_encode($response);
+        }
+        exit();
+    } else if ($method === 'sampling/createMessage') {
+        // Handle sampling/createMessage method
+        // This is a key sampling operation in MCP
         // For now, we'll return a method not implemented error
         $response = createMCPError(-32601, 'Method not implemented', null, $id);
         
