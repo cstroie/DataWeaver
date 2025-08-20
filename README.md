@@ -1,6 +1,6 @@
 # DataWeaver
 
-A minimal Model Communication Protocol server implemented in PHP with functions to return the current time, fetch webpage content, get weather information, and support JSON-RPC protocol.
+A minimal Model Communication Protocol (MCP) server implemented in PHP with functions to return the current time, fetch webpage content, get weather information, and support the full JSON-RPC protocol.
 
 ## Setup
 
@@ -129,6 +129,11 @@ curl -X POST -H "Content-Type: application/json" -d '{"method":"initialize","par
 ### JSON-RPC Methods
 
 - `initialize`: Establishes a connection with the MCP server and returns server capabilities
+- `roots/list`: Lists available root directories
+- `resources/list`: Lists available resources
+- `prompts/list`: Lists available prompts
+- `sampling/createMessage`: Creates a sampling message
+- `notifications/progress`: Handles progress notifications
 
 ## License
 
