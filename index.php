@@ -265,14 +265,7 @@ if (isset($input['jsonrpc'])) {
         // Handle prompts/get method
         // This would normally retrieve a prompt by name
         // For now, we'll return a method not implemented error
-        $response = [
-            'jsonrpc' => '2.0',
-            'error' => [
-                'code' => -32601,           // Standard code for method not found
-                'message' => 'Method not implemented'
-            ],
-            'id' => $id
-        ];
+        $response = createMCPError(-32601, 'Method not implemented', null, $id);
         
         http_response_code(400);
         if ($isSSE) {
@@ -285,14 +278,7 @@ if (isset($input['jsonrpc'])) {
     } else {
         // Handle unknown JSON-RPC methods
         // Return standard JSON-RPC error response
-        $response = [
-            'jsonrpc' => '2.0',
-            'error' => [
-                'code' => -32601,           // Standard code for method not found
-                'message' => 'Method not found'
-            ],
-            'id' => $id
-        ];
+        $response = createMCPError(-32601, 'Method not found', null, $id);
         
         http_response_code(400);
         if ($isSSE) {
