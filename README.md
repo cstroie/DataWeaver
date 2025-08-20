@@ -1,11 +1,12 @@
 # PHP AI MCP Server
 
-A minimal Model Communication Protocol server implemented in PHP with one function to return the current time.
+A minimal Model Communication Protocol server implemented in PHP with functions to return the current time, fetch webpage content, and get weather information.
 
 ## Usage
 
 Send a POST request to the server with JSON data:
 
+### Get Current Time
 ```json
 {
   "function": "get_current_time"
@@ -20,12 +21,72 @@ The server will respond with:
 }
 ```
 
+### Get Webpage Text Content
+```json
+{
+  "function": "get_webpage_text",
+  "url": "https://example.com"
+}
+```
+
+The server will respond with:
+
+```json
+{
+  "result": "Example Domain This domain is for use in illustrative examples in documents..."
+}
+```
+
+### Get Weather Information
+```json
+{
+  "function": "get_weather",
+  "city": "London"
+}
+```
+
+The server will respond with:
+
+```json
+{
+  "result": {
+    "city": "London",
+    "country": "GB",
+    "temperature": 15.5,
+    "description": "light rain",
+    "humidity": 72,
+    "pressure": 1012
+  }
+}
+```
+
 ## Example using curl
 
+### Get Current Time
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{"function":"get_current_time"}' http://localhost/
+```
+
+### Get Webpage Text Content
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"function":"get_webpage_text","url":"https://example.com"}' http://localhost/
+```
+
+### Get Weather Information
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"function":"get_weather","city":"London"}' http://localhost/
 ```
 
 ## Functions
 
 - `get_current_time`: Returns the current server time in YYYY-MM-DD HH:MM:SS format
+- `get_webpage_text`: Fetches the content of a webpage and returns it as plain text
+- `get_weather`: Returns current weather information for a specified city
+
+## Configuration
+
+To use the weather function, you need to set the OpenWeatherMap API key as an environment variable:
+
+```bash
+export OPENWEATHER_API_KEY=your_api_key_here
+```

@@ -71,11 +71,68 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     echo json_encode([
         'result' => $plainText
     ]);
+} else if (isset($input['function']) && $input['function'] === 'get_weather') {
+    // Get weather for a city
+    if (!isset($input['city'])) {
+        http_response_code(400);
+        echo json_encode([
+            'error' => 'Missing city parameter'
+        ]);
+        exit();
+    }
+    
+    $city = $input['city'];
+    
+    // OpenWeatherMap API configuration
+    $apiKey = getenv('OPENWEATHER_API_KEY'); // Get API key from environment variable
+    if (!$apiKey) {
+        http_response_code(500);
+        echo json_encode([
+            'error' => 'Weather API key not configured'
+        ]);
+        exit();
+    }
+    
+    // Build API URL
+    $apiUrl = "http://api.openweathermap.org/data/2.5/weather?q=" . urlencode($city) . "&appid=" . $apiKey . "&units=metric";
+    
+    // Fetch weather data
+    $weatherData = @file_get_contents($apiUrl);
+    
+    if ($weatherData === false) {
+        http_response_code(500);
+        echo json_encode([
+            'error' => 'Failed to fetch weather data'
+        ]);
+        exit();
+    }
+    
+    $weather = json_decode($weatherData, true);
+    
+    if ($weather['cod'] !== 200) {
+        http_response_code($weather['cod']);
+        echo json_encode([
+            'error' => $weather['message']
+        ]);
+        exit();
+    }
+    
+    // Format response
+    echo json_encode([
+        'result' => [
+            'city' => $weather['name'],
+            'country' => $weather['sys']['country'],
+            'temperature' => $weather['main']['temp'],
+            'description' => $weather['weather'][0]['description'],
+            'humidity' => $weather['main']['humidity'],
+            'pressure' => $weather['main']['pressure']
+        ]
+    ]);
 } else {
     // Return error for unknown functions
     http_response_code(400);
     echo json_encode([
-        'error' => 'Unknown function. Available functions: get_current_time, get_webpage_text'
+        'error' => 'Unknown function. Available functions: get_current_time, get_webpage_text, get_weather'
     ]);
 }
 ?>
