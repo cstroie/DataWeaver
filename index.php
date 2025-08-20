@@ -112,7 +112,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     }
     
     // Build API URL
-    $apiUrl = "http://api.openweathermap.org/data/2.5/weather?q=" . urlencode($city) . "&appid=" . $apiKey . "&units=metric";
+    $apiUrl = "http://api.openweathermap.org/data/3.0/weather?q=" . urlencode($city) . "&appid=" . $apiKey . "&units=metric";
     
     // Fetch weather data
     $weatherData = @file_get_contents($apiUrl);
