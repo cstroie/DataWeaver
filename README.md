@@ -65,6 +65,25 @@ The server will respond with:
 }
 ```
 
+### Get METAR Information
+```json
+{
+  "function": "get_metar",
+  "icao": "EGLL"
+}
+```
+
+The server will respond with:
+
+```json
+{
+  "result": {
+    "icao": "EGLL",
+    "metar": "EGLL 151420Z 27006KT 9999 FEW025 15/07 Q1013"
+  }
+}
+```
+
 ## Example using curl
 
 ### Get Current Time
@@ -80,6 +99,11 @@ curl -X POST -H "Content-Type: application/json" -d '{"function":"get_webpage_te
 ### Get Weather Information
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{"function":"get_weather","city":"London"}' http://localhost/
+```
+
+### Get METAR Information
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"function":"get_metar","icao":"EGLL"}' http://localhost/
 ```
 
 ## Functions
