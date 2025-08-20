@@ -68,8 +68,16 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         exit();
     }
     
+    // Create context with user agent
+    $context = stream_context_create([
+        'http' => [
+            'user_agent' => 'DataWeaver/1.0 (https://github.com/DataWeaver)',
+            'timeout' => 30
+        ]
+    ]);
+    
     // Fetch webpage content
-    $content = @file_get_contents($url);
+    $content = @file_get_contents($url, false, $context);
     
     if ($content === false) {
         http_response_code(500);
@@ -110,9 +118,17 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         exit();
     }
     
+    // Create context with user agent
+    $context = stream_context_create([
+        'http' => [
+            'user_agent' => 'DataWeaver/1.0 (https://github.com/DataWeaver)',
+            'timeout' => 30
+        ]
+    ]);
+    
     // Use aviationweather.gov API to get METAR data
     $metarUrl = "https://aviationweather.gov/api/data/metar?ids=" . $icao;
-    $metarData = @file_get_contents($metarUrl);
+    $metarData = @file_get_contents($metarUrl, false, $context);
     
     if ($metarData === false) {
         http_response_code(500);
@@ -160,9 +176,17 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         exit();
     }
     
+    // Create context with user agent
+    $context = stream_context_create([
+        'http' => [
+            'user_agent' => 'DataWeaver/1.0 (https://github.com/DataWeaver)',
+            'timeout' => 30
+        ]
+    ]);
+    
     // First, get coordinates using Geocoding API
     $geocodeUrl = "http://api.openweathermap.org/geo/1.0/direct?q=" . urlencode($city) . "&limit=1&appid=" . $apiKey;
-    $geocodeData = @file_get_contents($geocodeUrl);
+    $geocodeData = @file_get_contents($geocodeUrl, false, $context);
     
     if ($geocodeData === false) {
         http_response_code(500);
@@ -190,7 +214,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
     
     // Then, get weather data using coordinates with API version 3
     $weatherUrl = "http://api.openweathermap.org/data/3.0/onecall?lat=" . $lat . "&lon=" . $lon . "&appid=" . $apiKey . "&units=metric&exclude=minutely,hourly,daily,alerts";
-    $weatherData = @file_get_contents($weatherUrl);
+    $weatherData = @file_get_contents($weatherUrl, false, $context);
     
     if ($weatherData === false) {
         http_response_code(500);
