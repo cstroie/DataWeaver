@@ -47,6 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Helper function to log requests
+// Logs all incoming requests to a file for later analysis
+// Format: [timestamp] IP HTTP_METHOD: JSON_INPUT
 function logRequest($input) {
     $logFile = '/tmp/dataweaver_requests.log';
     $timestamp = date('Y-m-d H:i:s');
@@ -87,6 +89,7 @@ if (!$input && !empty($_GET)) {
 logRequest($input);
 
 // Check if this is a JSON-RPC request
+// JSON-RPC requests have a 'jsonrpc' field with value '2.0'
 if (isset($input['jsonrpc'])) {
     // Handle JSON-RPC requests
     $method = isset($input['method']) ? $input['method'] : null;
@@ -95,17 +98,18 @@ if (isset($input['jsonrpc'])) {
     
     if ($method === 'initialize') {
         // Handle initialize method
+        // This is the first method called by MCP clients to establish connection
         $response = [
             'jsonrpc' => '2.0',
             'result' => [
                 'protocolVersion' => '2024-11-05',
                 'capabilities' => [
-                    'sampling' => [],
-                    'logging' => [],
-                    'roots' => [],
-                    'prompts' => [],
-                    'resources' => [],
-                    'tools' => []
+                    'sampling' => [],      // Supports sampling operations
+                    'logging' => [],       // Supports logging operations
+                    'roots' => [],         // Supports file system root operations
+                    'prompts' => [],       // Supports prompt operations
+                    'resources' => [],     // Supports resource operations
+                    'tools' => []          // Supports tool operations
                 ],
                 'serverInfo' => [
                     'name' => 'DataWeaver MCP Server',
@@ -124,10 +128,11 @@ if (isset($input['jsonrpc'])) {
         exit();
     } else {
         // Handle unknown JSON-RPC methods
+        // Return standard JSON-RPC error response
         $response = [
             'jsonrpc' => '2.0',
             'error' => [
-                'code' => -32601,
+                'code' => -32601,           // Standard code for method not found
                 'message' => 'Method not found'
             ],
             'id' => $id
@@ -214,7 +219,7 @@ if ($function === 'get_current_time') {
     
     $url = $input['url'];
     
-    // Validate URL
+    // Validate URL format
     if (!filter_var($url, FILTER_VALIDATE_URL)) {
         http_response_code(400);
         $response = [
@@ -225,7 +230,8 @@ if ($function === 'get_current_time') {
         exit();
     }
     
-    // Create context with user agent
+    // Create context with user agent to identify our requests
+    // Set timeout to prevent hanging on slow websites
     $context = stream_context_create([
         'http' => [
             'user_agent' => 'DataWeaver/1.0 (https://github.com/cstroie/DataWeaver)',
@@ -233,7 +239,8 @@ if ($function === 'get_current_time') {
         ]
     ]);
     
-    // Fetch webpage content
+    // Fetch webpage content using file_get_contents with context
+    // The @ suppresses warnings which we handle with the false check
     $content = @file_get_contents($url, false, $context);
     
     if ($content === false) {
@@ -246,10 +253,11 @@ if ($function === 'get_current_time') {
         exit();
     }
     
-    // Convert HTML to plain text
+    // Convert HTML to plain text by removing all HTML tags
     $plainText = strip_tags($content);
     
-    // Clean up whitespace
+    // Clean up whitespace - replace multiple whitespace characters with single space
+    // Then trim leading/trailing whitespace
     $plainText = preg_replace('/\s+/', ' ', $plainText);
     $plainText = trim($plainText);
     
