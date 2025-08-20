@@ -46,6 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+// Helper function to send responses
+function sendResponse($response, $isSSE) {
+    if ($isSSE) {
+        echo "data: " . json_encode($response) . "\n\n";
+        flush();
+    } else {
+        echo json_encode($response);
+    }
+}
+
 // Get the request data
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -61,12 +71,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         'result' => date('Y-m-d H:i:s')
     ];
     
-    if ($isSSE) {
-        echo "data: " . json_encode($response) . "\n\n";
-        flush();
-    } else {
-        echo json_encode($response);
-    }
+    sendResponse($response, $isSSE);
 } else if (isset($input['function']) && $input['function'] === 'get_webpage_text') {
     // Get webpage content and convert to plain text
     if (!isset($input['url'])) {
@@ -75,12 +80,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Missing url parameter'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -93,12 +93,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Invalid URL provided'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -119,12 +114,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Failed to fetch webpage content'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -139,12 +129,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         'result' => $plainText
     ];
     
-    if ($isSSE) {
-        echo "data: " . json_encode($response) . "\n\n";
-        flush();
-    } else {
-        echo json_encode($response);
-    }
+    sendResponse($response, $isSSE);
 } else if (isset($input['function']) && $input['function'] === 'get_metar') {
     // Get METAR data for an ICAO airport
     if (!isset($input['icao'])) {
@@ -153,12 +138,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Missing ICAO parameter'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -171,12 +151,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Invalid ICAO code. Must be 4 letters.'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -198,12 +173,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Failed to fetch METAR data'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -214,12 +184,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'METAR data not available for this airport'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -231,12 +196,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         ]
     ];
     
-    if ($isSSE) {
-        echo "data: " . json_encode($response) . "\n\n";
-        flush();
-    } else {
-        echo json_encode($response);
-    }
+    sendResponse($response, $isSSE);
 } else if (isset($input['function']) && $input['function'] === 'get_weather') {
     // Get weather for a city
     if (!isset($input['city'])) {
@@ -245,12 +205,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Missing city parameter'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -264,12 +219,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Weather API key not configured'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -292,12 +242,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'response' => $geocodeData
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -309,12 +254,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'City not found'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -334,12 +274,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'response' => $weatherData
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -351,12 +286,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
             'error' => 'Invalid weather data received'
         ];
         
-        if ($isSSE) {
-            echo "data: " . json_encode($response) . "\n\n";
-            flush();
-        } else {
-            echo json_encode($response);
-        }
+        sendResponse($response, $isSSE);
         exit();
     }
     
@@ -372,12 +302,7 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         ]
     ];
     
-    if ($isSSE) {
-        echo "data: " . json_encode($response) . "\n\n";
-        flush();
-    } else {
-        echo json_encode($response);
-    }
+    sendResponse($response, $isSSE);
 } else {
     // Return error for unknown functions
     http_response_code(400);
@@ -385,11 +310,6 @@ if (isset($input['function']) && $input['function'] === 'get_current_time') {
         'error' => 'Unknown function. Available functions: get_current_time, get_webpage_text, get_weather, get_metar'
     ];
     
-    if ($isSSE) {
-        echo "data: " . json_encode($response) . "\n\n";
-        flush();
-    } else {
-        echo json_encode($response);
-    }
+    sendResponse($response, $isSSE);
 }
 ?>
